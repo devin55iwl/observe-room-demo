@@ -6,15 +6,15 @@ import type { Plugin } from 'vite'
 
 const assetFallbacks: Record<string, string> = {
   'fa0d16c39081a2c44765b4fd4bdd1d40747ed8e5.png':
-    'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=1800&q=85',
+    '/observe-room-demo/demo-assets/interviewee.jpg',
   'e38038c542ec13feb27b209f2d8ba9f865436b98.png':
-    'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=1800&q=85',
+    '/observe-room-demo/demo-assets/ai-moderator.jpg',
   '23ba928371385f05d2596d28574ae1b0ff2726c3.png':
-    'https://images.unsplash.com/photo-1717994818193-266ff93e3396?auto=format&fit=crop&w=1200&q=85',
+    '/observe-room-demo/demo-assets/task-a.jpg',
   '74d0697514bad9978e8c7782df5125fed444578b.png':
-    'https://images.unsplash.com/photo-1687125114692-54f19a0fd438?auto=format&fit=crop&w=1200&q=85',
+    '/observe-room-demo/demo-assets/task-b.jpg',
   'c6fe44898bbfde63751a3f1f6653e91005096cb4.png':
-    'https://images.unsplash.com/photo-1477346611705-65d1883cee1e?auto=format&fit=crop&w=1800&q=85',
+    '/observe-room-demo/demo-assets/dark-bg.jpg',
 }
 
 function svgFallback(assetName: string) {

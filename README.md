@@ -19,7 +19,7 @@ npm run build
 
 ## GitHub Pages
 
-This repository deploys `dist/` to GitHub Pages on every push to `main`.
+The built `dist/` output is published from the `gh-pages` branch.
 
 Production URL:
 

@@ -306,6 +306,19 @@ export function ControlBar({
   try { themeTokens = useObserveTheme(); } catch {}
   const isLight = themeTokens?.mode === "light";
   const divCls = isLight ? "w-px h-6 mx-0.5 bg-black/[0.06]" : "w-px h-6 mx-0.5 bg-white/[0.06]";
+  const handleLeaveRoom = useCallback(() => {
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: "cookiy-observe-room-leave" }, "https://cookiy-ai-portfolio-demo.vercel.app");
+      return;
+    }
+
+    if (document.referrer) {
+      window.location.href = document.referrer;
+      return;
+    }
+
+    window.history.back();
+  }, []);
 
   return (
     <Surface className="flex items-center gap-1 px-2 py-1.5">
@@ -388,7 +401,9 @@ export function ControlBar({
 
       <div className={divCls} />
       <div className="relative group/leave">
-        <button className="flex items-center gap-2 px-3.5 py-3 cursor-pointer transition-colors hover:brightness-110"
+        <button
+          onClick={handleLeaveRoom}
+          className="flex items-center gap-2 px-3.5 py-3 cursor-pointer transition-colors hover:brightness-110"
           style={{
             background: "rgba(255,128,128,0.08)",
             borderRadius: R.md,

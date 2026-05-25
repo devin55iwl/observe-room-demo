@@ -44,12 +44,12 @@ import { FaceStageView } from "../components/FaceStageView";
 
 /* ── Extracted UI sections ── */
 import { BackgroundLayer } from "../components/BackgroundLayer";
+import { CancerStarryNight } from "../components/CancerStarryNight";
 import { StatusBar } from "../components/StatusBar";
 import { LeftDockModule } from "../components/LeftDockModule";
 import { LeftDockPiP } from "../components/LeftDockPiP";
 import { RightNav } from "../components/RightNav";
 import { DiscardModal } from "../components/DiscardModal";
-import { StarryBackground } from "../components/StarryBackground";
 
 /* pre-destructure for sandbox compatibility */
 const MotionDiv = motion.div;
@@ -370,7 +370,8 @@ function ResearcherViewInner() {
       )}
 
       {/* Dark mode background */}
-      {!isLightMode && (
+      {!isLightMode && !taskViewOpen && <CancerStarryNight />}
+      {!isLightMode && taskViewOpen && (
         <BackgroundLayer
           imgInterviewee={imgInterviewee}
           imgCookiyAI={imgCookiyAI}
@@ -379,9 +380,6 @@ function ResearcherViewInner() {
           taskViewOpen={taskViewOpen}
         />
       )}
-
-      {/* ── Starry sky — replaces background when session is paused (dark only) ── */}
-      {!isLightMode && <StarryBackground visible={sessionPaused} />}
 
       {/* ── Theme toggle button ── */}
       <div

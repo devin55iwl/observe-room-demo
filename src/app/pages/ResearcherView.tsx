@@ -379,8 +379,8 @@ function ResearcherViewInner() {
       )}
 
       {/* Dark mode background */}
-      {!isLightMode && !taskViewOpen && <CancerStarryNight />}
-      {!isLightMode && taskViewOpen && (
+      {!isLightMode && !taskViewOpen && !isVideoOn && <CancerStarryNight />}
+      {!isLightMode && (!taskViewOpen || isVideoOn) && (
         <BackgroundLayer
           imgInterviewee={launchContext.intervieweeImage}
           imgCookiyAI={imgCookiyAI}

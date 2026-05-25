@@ -2,7 +2,7 @@
  * ControlBar — Bottom-center media controls strip.
  *
  * Contains:
- *  - Mic / Camera toggles (disabled in observer mode)
+ *  - Mic toggle (disabled in observer mode) and camera preview toggle
  *  - Screen share toggle (disabled in observer mode)
  *  - Volume control with vertical slider popup
  *  - Brightness control with vertical slider popup
@@ -314,7 +314,7 @@ export function ControlBar({
         disabled tip="AI Moderator controls the microphone" />
       <CtrlBtn on={isVideoOn} onClick={() => setIsVideoOn(!isVideoOn)}
         iconOn={<VideoIcon size={17} />} iconOff={<VideoOff size={17} />}
-        disabled tip="AI Moderator controls the camera" />
+        tip={isVideoOn ? "Turn camera preview off" : "Turn camera preview on"} />
       <div className={divCls} />
       <CtrlBtn on={!isScreenSharing} onClick={() => setIsScreenSharing(!isScreenSharing)}
         iconOn={<Share size={17} />} iconOff={<Share size={17} />}

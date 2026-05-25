@@ -12,16 +12,17 @@ import React from "react";
 import { motion } from "motion/react";
 import { Video } from "lucide-react";
 import { R, T, glass } from "./constants";
-import imgInterviewee from "figma:asset/fa0d16c39081a2c44765b4fd4bdd1d40747ed8e5.png";
+import defaultIntervieweeImage from "figma:asset/fa0d16c39081a2c44765b4fd4bdd1d40747ed8e5.png";
 
 const MotionDiv = motion.div;
 
 interface FaceStageViewProps {
   /** Ref forwarded from App — backend sets .srcObject = cameraStream */
   faceVideoRef?: React.RefObject<HTMLVideoElement>;
+  imgInterviewee?: string;
 }
 
-export function FaceStageView({ faceVideoRef }: FaceStageViewProps) {
+export function FaceStageView({ faceVideoRef, imgInterviewee = defaultIntervieweeImage }: FaceStageViewProps) {
   return (
     <MotionDiv
       key="face-stage"

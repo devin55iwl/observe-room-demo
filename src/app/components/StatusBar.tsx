@@ -13,9 +13,10 @@ import { useObserveTheme } from "./observe-room/ObserveThemeContext";
 
 interface StatusBarProps {
   clock: string;
+  participantId?: string;
 }
 
-export function StatusBar({ clock }: StatusBarProps) {
+export function StatusBar({ clock, participantId = "#9527" }: StatusBarProps) {
   const projectName = "AI AI AI aaananan Tools Research";
   const [showTooltip, setShowTooltip] = useState(false);
   const { mode } = useObserveTheme();
@@ -25,7 +26,7 @@ export function StatusBar({ clock }: StatusBarProps) {
     <Surface className="px-4 py-2.5 flex items-center gap-0">
       <div className="flex items-center gap-2.5 flex-1 min-w-0">
         <div className="min-w-0">
-          <div className={`${isLight ? "text-black/80" : "text-white/90"} truncate`} style={{ fontSize: 15 }}>Observe Room #9527</div>
+          <div className={`${isLight ? "text-black/80" : "text-white/90"} truncate`} style={{ fontSize: 15 }}>Observe Room {participantId}</div>
           <div className="flex items-center gap-1.5" style={{ marginTop: 1 }}>
             <span
               className={`${isLight ? "text-black/40" : "text-white/40"} truncate relative cursor-default`}

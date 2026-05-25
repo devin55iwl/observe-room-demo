@@ -9,7 +9,7 @@ import type { ReactNode, CSSProperties } from "react";
 import { AnimatePresence, motion } from "motion/react";
 
 import { ScanFace, AlertTriangle, SkipForward, Sun, Moon } from "lucide-react";
-import imgInterviewee from "figma:asset/fa0d16c39081a2c44765b4fd4bdd1d40747ed8e5.png";
+import defaultIntervieweeImage from "figma:asset/fa0d16c39081a2c44765b4fd4bdd1d40747ed8e5.png";
 import imgCookiyAI from "figma:asset/e38038c542ec13feb27b209f2d8ba9f865436b98.png";
 
 /* ── Shared modules ── */
@@ -69,6 +69,15 @@ export function ResearcherView() {
 function ResearcherViewInner() {
   const { mode: observeMode, tokens: ot, toggle: toggleObserveTheme } = useObserveTheme();
   const isLightMode = observeMode === "light";
+  const launchContext = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    const participant = params.get("participant");
+    const photo = params.get("photo");
+    return {
+      participantId: participant ? `#${participant.replace(/^#/, "")}` : "#9527",
+      intervieweeImage: photo || defaultIntervieweeImage,
+    };
+  }, []);
 
   /* ─────────────────────────
      1. Core UI state
@@ -373,7 +382,7 @@ function ResearcherViewInner() {
       {!isLightMode && !taskViewOpen && <CancerStarryNight />}
       {!isLightMode && taskViewOpen && (
         <BackgroundLayer
-          imgInterviewee={imgInterviewee}
+          imgInterviewee={launchContext.intervieweeImage}
           imgCookiyAI={imgCookiyAI}
           pipSwapped={pipSwapped}
           bgImgRef={bgImgRef}
@@ -449,7 +458,7 @@ function ResearcherViewInner() {
                   screenVideoRef={screenVideoRef}
                 />
               ) : (
-                <FaceStageView key="face-view" faceVideoRef={faceVideoRef} />
+                <FaceStageView key="face-view" faceVideoRef={faceVideoRef} imgInterviewee={launchContext.intervieweeImage} />
               )}
             </AnimatePresence>
           </MotionDiv>
@@ -461,7 +470,7 @@ function ResearcherViewInner() {
         style={{ top: G, left: G, width: LEFT_W, bottom: G + CTRL_BAR_H + G, gap: G }}
       >
         <div style={{ flexShrink: 0 }}>
-          <StatusBar clock={clock} />
+          <StatusBar clock={clock} participantId={launchContext.participantId} />
         </div>
 
         <div style={{ flex: "1 1 0", minHeight: 0, display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
@@ -495,8 +504,9 @@ function ResearcherViewInner() {
               style={{ flexShrink: 0 }}
             >
               <LeftDockPiP
-                imgInterviewee={imgInterviewee}
+                imgInterviewee={launchContext.intervieweeImage}
                 imgCookiyAI={imgCookiyAI}
+                participantId={launchContext.participantId}
                 pipSwapped={pipSwapped}
                 setPipSwapped={setPipSwapped}
                 taskViewOpen={taskViewOpen}

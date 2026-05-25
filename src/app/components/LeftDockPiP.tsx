@@ -28,6 +28,7 @@ const MotionDiv = motion.div;
 interface LeftDockPiPProps {
   imgInterviewee: string;
   imgCookiyAI: string;
+  participantId?: string;
   pipSwapped: boolean;
   setPipSwapped: React.Dispatch<React.SetStateAction<boolean>>;
   /** When true, Switch = face ↔ task screen swap (shared mode) */
@@ -72,6 +73,7 @@ function ScreenSharePlaceholder() {
 export function LeftDockPiP({
   imgInterviewee,
   imgCookiyAI,
+  participantId = "#9527",
   pipSwapped,
   setPipSwapped,
   taskViewOpen,
@@ -87,8 +89,8 @@ export function LeftDockPiP({
   const showingAI     = !taskViewOpen && pipSwapped;
 
   const badgeLabel = taskViewOpen
-    ? (pipSwapped ? "Screen" : "#9527")
-    : (pipSwapped ? "Cookiy AI" : "#9527");
+    ? (pipSwapped ? "Screen" : participantId)
+    : (pipSwapped ? "Cookiy AI" : participantId);
 
   /* Hover hint describes what WILL happen on click */
   const switchLabel = taskViewOpen

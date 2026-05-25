@@ -8,7 +8,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import type { ReactNode, CSSProperties } from "react";
 import { AnimatePresence, motion } from "motion/react";
 
-import { ScanFace, AlertTriangle, SkipForward, Sun, Moon } from "lucide-react";
+import { ScanFace, AlertTriangle, SkipForward } from "lucide-react";
 import defaultIntervieweeImage from "figma:asset/fa0d16c39081a2c44765b4fd4bdd1d40747ed8e5.png";
 import imgCookiyAI from "figma:asset/e38038c542ec13feb27b209f2d8ba9f865436b98.png";
 
@@ -67,7 +67,7 @@ export function ResearcherView() {
 }
 
 function ResearcherViewInner() {
-  const { mode: observeMode, tokens: ot, toggle: toggleObserveTheme } = useObserveTheme();
+  const { mode: observeMode, tokens: ot } = useObserveTheme();
   const isLightMode = observeMode === "light";
   const launchContext = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
@@ -389,26 +389,6 @@ function ResearcherViewInner() {
           taskViewOpen={taskViewOpen}
         />
       )}
-
-      {/* ── Theme toggle button ── */}
-      <div
-        onClick={toggleObserveTheme}
-        className="absolute z-40 cursor-pointer"
-        style={{
-          top: G + 4, right: G + NAV_W + G + 4,
-          width: 36, height: 36, borderRadius: 10,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          background: isLightMode ? "rgba(255,255,255,0.50)" : "rgba(255,255,255,0.04)",
-          backdropFilter: "blur(20px)",
-          border: `1px solid ${isLightMode ? "rgba(255,255,255,0.70)" : "rgba(255,255,255,0.08)"}`,
-          boxShadow: isLightMode ? "0 2px 8px rgba(0,0,0,0.06)" : "0 2px 8px rgba(0,0,0,0.30)",
-          transition: "all 0.2s ease",
-        }}
-      >
-        {isLightMode
-          ? <Moon size={15} color="rgba(0,0,0,0.50)" />
-          : <Sun size={15} color="rgba(255,255,255,0.50)" />}
-      </div>
 
       <div
         className="absolute z-10 flex flex-col items-stretch gap-2"

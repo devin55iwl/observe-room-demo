@@ -8,7 +8,7 @@
  *
  * Dark mode preserves the original cinematic glass design.
  */
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext } from "react";
 import type { CSSProperties } from "react";
 
 export type ObserveMode = "light" | "dark";
@@ -137,11 +137,8 @@ const ObserveThemeCtx = createContext<ObserveThemeCtxValue>({
 });
 
 export function ObserveThemeProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setMode] = useState<ObserveMode>("dark");
-  const toggle = useCallback(() => setMode(m => m === "dark" ? "light" : "dark"), []);
-  const tokens = mode === "dark" ? DARK_TOKENS : LIGHT_TOKENS;
   return (
-    <ObserveThemeCtx.Provider value={{ mode, tokens, toggle }}>
+    <ObserveThemeCtx.Provider value={{ mode: "dark", tokens: DARK_TOKENS, toggle: () => {} }}>
       {children}
     </ObserveThemeCtx.Provider>
   );

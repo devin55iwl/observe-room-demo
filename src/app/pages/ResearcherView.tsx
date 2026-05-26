@@ -52,65 +52,7 @@ import { RightNav } from "../components/RightNav";
 
 /* pre-destructure for sandbox compatibility */
 const MotionDiv = motion.div;
-const DEMO_OPEN_PANELS: string[] = [];
-
-function FocusSignalSummary() {
-  return (
-    <MotionDiv
-      initial={{ opacity: 0, x: 10, scale: 0.98 }}
-      animate={{ opacity: 1, x: 0, scale: 1 }}
-      exit={{ opacity: 0, x: 8, scale: 0.98 }}
-      transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
-      className="pointer-events-none"
-      style={{
-        width: 284,
-        borderRadius: 20,
-        background: "rgba(7,12,22,0.58)",
-        border: "1px solid rgba(255,255,255,0.095)",
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08), 0 18px 50px rgba(0,0,0,0.30)",
-        backdropFilter: "blur(30px) saturate(116%)",
-        WebkitBackdropFilter: "blur(30px) saturate(116%)",
-        padding: "14px 15px",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 13 }}>
-        <div>
-          <div style={{ fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.32)" }}>
-            Live signals
-          </div>
-          <div style={{ marginTop: 3, fontSize: 13, color: "rgba(255,255,255,0.82)" }}>
-            Strong reaction detected
-          </div>
-        </div>
-        <div style={{
-          width: 34, height: 34, borderRadius: 17,
-          background: "rgba(109,212,160,0.12)",
-          border: "1px solid rgba(109,212,160,0.20)",
-          color: C.positive,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 16, fontFamily: "monospace",
-        }}>
-          71
-        </div>
-      </div>
-      <div style={{ display: "grid", gap: 8 }}>
-        {[
-          ["Sentiment", "Positive 65%", C.positive],
-          ["Keyword", "Workflow + Integration", "rgba(125,154,255,0.82)"],
-          ["Risk", "Manual handoff friction", C.warning],
-        ].map(([label, value, color]) => (
-          <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 7, minWidth: 0 }}>
-              <span style={{ width: 5, height: 5, borderRadius: 99, background: color }} />
-              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.34)" }}>{label}</span>
-            </div>
-            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.62)", whiteSpace: "nowrap" }}>{value}</span>
-          </div>
-        ))}
-      </div>
-    </MotionDiv>
-  );
-}
+const DEMO_OPEN_PANELS = ["Check List", "Insights"];
 
 /* ═════════════════════════════════════════════════
    ResearcherView — Root Orchestrator (route: /)
@@ -229,7 +171,7 @@ function ResearcherViewInner() {
   const { emotion, history } = useEmotionCycle();
   const { events: actionEvents, dismiss: dismissAction, addEvent: addActionEvent } = useActionEvents(notificationsOn);
   const rightOffset = G + NAV_W + G;
-  const allRightOpen = RIGHT_IDS.filter(id => openPanels.has(id));
+  const allRightOpen = RIGHT_IDS.filter(id => id !== "Transcript" && openPanels.has(id));
   const rightCount = allRightOpen.length;
 
   const [followUps, setFollowUps] = useState<FollowUpQuestion[]>([
@@ -323,6 +265,15 @@ function ResearcherViewInner() {
     if (id === "Analysis") setAnalysisMinimized(false);
   }, []);
 
+  const openTranscriptHistory = useCallback(() => {
+    setOpenPanels(prev => {
+      if (prev.has("Transcript")) return prev;
+      const next = new Set(prev);
+      next.add("Transcript");
+      return next;
+    });
+  }, []);
+
   const resetLayout = useCallback(() => {
     setResetKey(k => k + 1);
     setDetached({});
@@ -340,7 +291,7 @@ function ResearcherViewInner() {
      11. Dock layout computation
      ───────────────────────────────────────────── */
   const dockedIds = useMemo(() => {
-    return RIGHT_IDS.filter(id => openPanels.has(id) && !detached[id] && id !== draggingId);
+    return RIGHT_IDS.filter(id => id !== "Transcript" && openPanels.has(id) && !detached[id] && id !== draggingId);
   }, [openPanels, detached, draggingId]);
 
   const centreRight = useMemo(() => {
@@ -448,7 +399,7 @@ function ResearcherViewInner() {
 
       {/* Dark mode background */}
       {!isLightMode && !taskViewOpen && !isVideoOn && <CancerStarryNight />}
-      {!isLightMode && (!taskViewOpen || isVideoOn) && (
+      {!isLightMode && (taskViewOpen || isVideoOn) && (
         <BackgroundLayer
           imgInterviewee={launchContext.intervieweeImage}
           imgCookiyAI={imgCookiyAI}
@@ -475,16 +426,18 @@ function ResearcherViewInner() {
       <div
         className="absolute z-[35]"
         style={{
-          bottom: G + CTRL_BAR_H + G, right: centreRight, width: 300,
+          bottom: G + CTRL_BAR_H + G + 88, right: centreRight, width: 300,
           transition: "right 0.32s cubic-bezier(0.32,0.72,0,1)",
         }}
       >
-        <ActionToastStack
-          events={allRightOpen.length > 0 ? actionEvents : []} onDismiss={dismissAction}
-          panelRectsRef={panelRectsRef} onSnapLines={setSnapLines}
-          notificationsOn={notificationsOn}
-          onToggleNotifications={() => setNotificationsOn(prev => !prev)}
-        />
+        {allRightOpen.length > 0 && actionEvents.length > 0 && (
+          <ActionToastStack
+            events={actionEvents} onDismiss={dismissAction}
+            panelRectsRef={panelRectsRef} onSnapLines={setSnapLines}
+            notificationsOn={notificationsOn}
+            onToggleNotifications={() => setNotificationsOn(prev => !prev)}
+          />
+        )}
       </div>
 
       <AnimatePresence>
@@ -524,29 +477,10 @@ function ResearcherViewInner() {
         style={{ top: G, left: G, width: LEFT_W, bottom: G + CTRL_BAR_H + G, gap: G }}
       >
         <div style={{ flexShrink: 0 }}>
-          <StatusBar clock={clock} participantId={launchContext.participantId} currentQuestion={currentFollowUp?.text} />
+          <StatusBar clock={clock} participantId={launchContext.participantId} />
         </div>
 
-        <div style={{ flex: "1 1 0", minHeight: 0, display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
-          <MotionDiv
-            layout
-            transition={{ duration: 0.32, ease: [0.32, 0.72, 0, 1] }}
-            style={
-              openPanels.has("Transcript")
-                ? { flex: "1 1 0", minHeight: 0, display: "flex", flexDirection: "column" }
-                : { flexShrink: 0 }
-            }
-          >
-            <LeftDockModule
-              isExpanded={openPanels.has("Transcript")}
-              onToggle={() => togglePanel("Transcript")}
-              translateLang={translateLang}
-              onTranslateLangChange={setTranslateLang}
-              participantId={launchContext.participantId}
-              liveData={liveEngine}
-            />
-          </MotionDiv>
-        </div>
+        <div style={{ flex: "1 1 0", minHeight: 0 }} />
 
         <AnimatePresence>
           {taskViewOpen && (
@@ -573,6 +507,62 @@ function ResearcherViewInner() {
         </AnimatePresence>
       </div>
 
+      <div
+        className="absolute z-[45]"
+        style={{
+          left: taskViewOpen ? G : (dockedIds.length > 0 ? G + LEFT_W + G : G),
+          right: taskViewOpen ? "auto" : (dockedIds.length > 0 ? centreRight : rightOffset),
+          top: taskViewOpen ? G + STATUS_H + STATUS_GAP : "auto",
+          bottom: taskViewOpen ? "auto" : G + CTRL_BAR_H + G,
+          width: taskViewOpen ? LEFT_W : "auto",
+          display: "flex",
+          justifyContent: taskViewOpen ? "flex-start" : "center",
+          pointerEvents: "none",
+          transition: "left 0.32s cubic-bezier(0.32,0.72,0,1), right 0.32s cubic-bezier(0.32,0.72,0,1), top 0.32s cubic-bezier(0.32,0.72,0,1), bottom 0.32s cubic-bezier(0.32,0.72,0,1)",
+        }}
+      >
+        <div onMouseDown={openTranscriptHistory} style={{ width: taskViewOpen ? "100%" : "min(420px, 100%)", pointerEvents: "auto" }}>
+          <LeftDockModule
+            isExpanded={false}
+            onToggle={openTranscriptHistory}
+            translateLang={translateLang}
+            onTranslateLangChange={setTranslateLang}
+            participantId={launchContext.participantId}
+            liveData={liveEngine}
+          />
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {openPanels.has("Transcript") && (
+          <MotionDiv
+            key="left-transcript-history"
+            initial={{ opacity: 0, x: -12, scale: 0.98 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: -10, scale: 0.98 }}
+            transition={{ duration: 0.24, ease: [0.32, 0.72, 0, 1] }}
+            className="absolute z-[22]"
+            style={{
+              left: G,
+              top: G + STATUS_H + STATUS_GAP,
+              width: LEFT_W,
+              bottom: G + CTRL_BAR_H + G,
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <LeftDockModule
+              isExpanded
+              onToggle={() => togglePanel("Transcript")}
+              translateLang={translateLang}
+              onTranslateLangChange={setTranslateLang}
+              participantId={launchContext.participantId}
+              liveData={liveEngine}
+            />
+          </MotionDiv>
+        )}
+      </AnimatePresence>
+
       <div className="absolute top-1/2 -translate-y-1/2 z-30" style={{ right: G }}>
         <RightNav
           openPanels={openPanels} togglePanel={togglePanel} resetLayout={resetLayout}
@@ -584,17 +574,6 @@ function ResearcherViewInner() {
           onToggleTaskView={handleToggleTaskView}
         />
       </div>
-
-      <AnimatePresence>
-        {allRightOpen.length === 0 && !taskViewOpen && (
-          <div
-            className="absolute z-20"
-            style={{ right: rightOffset, bottom: G + CTRL_BAR_H + G + 4 }}
-          >
-            <FocusSignalSummary />
-          </div>
-        )}
-      </AnimatePresence>
 
       <SnapGuides lines={snapLines} />
 

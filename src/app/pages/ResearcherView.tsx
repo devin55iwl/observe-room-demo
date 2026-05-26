@@ -496,7 +496,13 @@ function ResearcherViewInner() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.985 }}
             transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
-            style={{ top: G, left: G + LEFT_W + G, right: rightOffset, bottom: G + CTRL_BAR_H + G }}
+            style={{
+              top: G + 56,
+              left: G + LEFT_W + G,
+              right: centreRight,
+              bottom: G + CTRL_BAR_H + G,
+              transition: "right 0.32s cubic-bezier(0.32,0.72,0,1), top 0.32s cubic-bezier(0.32,0.72,0,1)",
+            }}
           >
             <AnimatePresence mode="wait">
               {!pipSwapped ? (

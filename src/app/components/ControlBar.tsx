@@ -411,7 +411,7 @@ export function ControlBar({
             border: "0.5px solid rgba(255,128,128,0.12)",
           }}>
           <LogOut size={17} />
-          <span style={{ fontSize: T.caption }}>Leave Room</span>
+          <span style={{ fontSize: T.caption }}>Leave</span>
         </button>
         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2.5 px-2.5 py-1.5
           opacity-0 scale-[0.97] group-hover/leave:opacity-100 group-hover/leave:scale-100

@@ -510,24 +510,23 @@ function ResearcherViewInner() {
       <div
         className="absolute z-[45]"
         style={{
-          left: taskViewOpen ? G : (dockedIds.length > 0 ? G + LEFT_W + G : G),
-          right: taskViewOpen ? "auto" : (dockedIds.length > 0 ? centreRight : rightOffset),
-          top: taskViewOpen ? G + STATUS_H + STATUS_GAP : "auto",
-          bottom: taskViewOpen ? "auto" : G + CTRL_BAR_H + G,
-          width: taskViewOpen ? LEFT_W : "auto",
+          left: dockedIds.length > 0 ? G + LEFT_W + G : G,
+          right: dockedIds.length > 0 ? centreRight : rightOffset,
+          bottom: G + CTRL_BAR_H + G,
           display: "flex",
-          justifyContent: taskViewOpen ? "flex-start" : "center",
+          justifyContent: "center",
           pointerEvents: "none",
-          transition: "left 0.32s cubic-bezier(0.32,0.72,0,1), right 0.32s cubic-bezier(0.32,0.72,0,1), top 0.32s cubic-bezier(0.32,0.72,0,1), bottom 0.32s cubic-bezier(0.32,0.72,0,1)",
+          transition: "left 0.32s cubic-bezier(0.32,0.72,0,1), right 0.32s cubic-bezier(0.32,0.72,0,1), bottom 0.32s cubic-bezier(0.32,0.72,0,1)",
         }}
       >
-        <div onMouseDown={openTranscriptHistory} style={{ width: taskViewOpen ? "100%" : "min(420px, 100%)", pointerEvents: "auto" }}>
+        <div onMouseDown={openTranscriptHistory} style={{ width: "min(460px, 100%)", pointerEvents: "auto" }}>
           <LeftDockModule
             isExpanded={false}
             onToggle={openTranscriptHistory}
             translateLang={translateLang}
             onTranslateLangChange={setTranslateLang}
             participantId={launchContext.participantId}
+            variant="caption"
             liveData={liveEngine}
           />
         </div>

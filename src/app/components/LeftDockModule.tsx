@@ -168,6 +168,7 @@ interface LeftDockModuleProps {
   translateLang: LangCode;
   onTranslateLangChange: (lang: LangCode) => void;
   participantId?: string;
+  variant?: "dock" | "caption";
   /** Live caption state from the shared useLiveSimulation hook */
   liveData: LiveSimulationState;
 }
@@ -178,12 +179,14 @@ export function LeftDockModule({
   translateLang,
   onTranslateLangChange,
   participantId = "#9527",
+  variant = "dock",
   liveData,
 }: LeftDockModuleProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [liveBarHovered, setLiveBarHovered] = useState(false);
   const { mode, tokens: ot } = useObserveTheme();
   const isLight = mode === "light";
+  const isCaption = variant === "caption";
 
   const { lastTurn, isStreaming, activeSpeaker, isOverlap, modBubble, intBubble } = liveData;
 
@@ -221,16 +224,33 @@ export function LeftDockModule({
   const accentDividerText = isLight ? "rgba(0,0,0,0.30)" : "rgba(97,95,255,0.50)";
 
   /* Light-mode container style override */
-  const containerStyle: React.CSSProperties = isLight ? {
-    ...ot.surfaceBlur,
-    borderRadius: 24,
-    background: ot.surfaceBg,
-    borderWidth: 1, borderStyle: "solid", borderColor: ot.surfaceBorder,
-    boxShadow: ot.surfaceShadow,
+  const captionContainerStyle: React.CSSProperties = {
     overflow: "hidden",
     display: "flex",
     flexDirection: "column",
-  } : containerBase;
+    borderRadius: 14,
+    background: isLight ? "rgba(255,255,255,0.68)" : "rgba(8,10,16,0.34)",
+    borderWidth: 0.5,
+    borderStyle: "solid",
+    borderColor: isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)",
+    boxShadow: isLight
+      ? "0 8px 26px rgba(0,0,0,0.08)"
+      : "0 14px 38px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.045)",
+    backdropFilter: "blur(18px) saturate(112%)",
+    WebkitBackdropFilter: "blur(18px) saturate(112%)",
+  };
+  const containerStyle: React.CSSProperties = isCaption
+    ? captionContainerStyle
+    : isLight ? {
+      ...ot.surfaceBlur,
+      borderRadius: 24,
+      background: ot.surfaceBg,
+      borderWidth: 1, borderStyle: "solid", borderColor: ot.surfaceBorder,
+      boxShadow: ot.surfaceShadow,
+      overflow: "hidden",
+      display: "flex",
+      flexDirection: "column",
+    } : containerBase;
 
   return (
     <div style={{
@@ -347,7 +367,8 @@ export function LeftDockModule({
         onMouseEnter={handleBarMouseEnter}
         onMouseLeave={handleBarMouseLeave}
         style={{
-          flexShrink: 0, position: "relative", padding: "11px 14px 11px 18px",
+          flexShrink: 0, position: "relative",
+          padding: isCaption ? "8px 12px 9px" : "11px 14px 11px 18px",
           background: !isExpanded && liveBarHovered
             ? (isLight ? "rgba(0,0,0,0.02)" : "rgba(255,255,255,0.04)")
             : isExpanded
@@ -384,14 +405,18 @@ export function LeftDockModule({
         }} />
 
         {/* ── Speaker row ── */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 7 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: isCaption ? 4 : 7 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
             <div style={{
-              width: 18, height: 18, borderRadius: 9, flexShrink: 0, background: speakerBg,
+              width: isCaption ? 14 : 18,
+              height: isCaption ? 14 : 18,
+              borderRadius: 9,
+              flexShrink: 0,
+              background: speakerBg,
               display: "flex", alignItems: "center", justifyContent: "center",
               transitionProperty: "background", transitionDuration: "0.25s", transitionTimingFunction: "ease",
             }}>
-              {isMod ? <Sparkles size={8} color="white" /> : <User size={8} color="white" />}
+              {isMod ? <Sparkles size={isCaption ? 6 : 8} color="white" /> : <User size={isCaption ? 6 : 8} color="white" />}
             </div>
             <span style={{ fontSize: T.micro, color: isMod ? ot.ink3 : ot.ink2 }}>
               {speakerName}
@@ -434,7 +459,7 @@ export function LeftDockModule({
                 )}
               </div>
               <span style={{ fontSize: T.micro, color: ot.ink4, textTransform: "uppercase", letterSpacing: "0.10em" }}>
-                Live
+                {isCaption ? "Live captions" : "Live"}
               </span>
             </div>
           </div>
@@ -530,7 +555,7 @@ export function LeftDockModule({
       {/* ════════════════════════════════════════════
           UNIFIED TOGGLE STRIP — always at bottom
           ════════════════════════════════════════════ */}
-      <ToggleStrip isExpanded={isExpanded} onToggle={onToggle} />
+      {!isCaption && <ToggleStrip isExpanded={isExpanded} onToggle={onToggle} />}
 
       {/* ── Keyframes ── */}
       <style dangerouslySetInnerHTML={{ __html: `

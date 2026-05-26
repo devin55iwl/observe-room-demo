@@ -17,7 +17,7 @@ import { Tip } from "./Tip";
 import { useObserveTheme } from "./observe-room/ObserveThemeContext";
 
 /* ── Surface ── */
-export function Surface({ children, className = "" }: { children: ReactNode; className?: string }) {
+export function Surface({ children, className = "", style }: { children: ReactNode; className?: string; style?: CSSProperties }) {
   const { surface } = useAdaptiveGlass();
   let themeTokens: any = null;
   try { themeTokens = useObserveTheme(); } catch {}
@@ -32,7 +32,7 @@ export function Surface({ children, className = "" }: { children: ReactNode; cla
     boxShadow: ot.surfaceShadow,
   } : {};
 
-  return <div className={className} style={isLight ? lightSurface : surface}>{children}</div>;
+  return <div className={className} style={{ ...(isLight ? lightSurface : surface), ...style }}>{children}</div>;
 }
 
 /* ── Card ── */

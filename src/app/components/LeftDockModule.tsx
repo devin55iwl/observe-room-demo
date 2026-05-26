@@ -167,6 +167,7 @@ interface LeftDockModuleProps {
   onToggle: () => void;
   translateLang: LangCode;
   onTranslateLangChange: (lang: LangCode) => void;
+  participantId?: string;
   /** Live caption state from the shared useLiveSimulation hook */
   liveData: LiveSimulationState;
 }
@@ -176,6 +177,7 @@ export function LeftDockModule({
   onToggle,
   translateLang,
   onTranslateLangChange,
+  participantId = "#9527",
   liveData,
 }: LeftDockModuleProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -190,7 +192,7 @@ export function LeftDockModule({
   const isMod       = speaker === "mod";
   const speakerMeta = SPEAKER_META[speaker];
   const speakerAccent = speakerMeta.color;
-  const speakerName   = speakerMeta.name;
+  const speakerName   = speaker === "int" ? participantId : speakerMeta.name;
   const speakerBg     = speakerMeta.bg;
 
   /* Auto-scroll history to bottom on expand */

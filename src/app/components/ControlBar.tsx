@@ -2,8 +2,7 @@
  * ControlBar — Bottom-center media controls strip.
  *
  * Contains:
- *  - Mic toggle (disabled in observer mode) and camera preview toggle
- *  - Screen share toggle (disabled in observer mode)
+ *  - Camera preview toggle
  *  - Volume control with vertical slider popup
  *  - Brightness control with vertical slider popup
  *  - "Leave Room" button
@@ -18,7 +17,7 @@ import { motion, AnimatePresence } from "motion/react";
 const MotionDiv = motion.div;
 
 import {
-  Mic, MicOff, Video as VideoIcon, VideoOff, Share, Volume2, VolumeOff,
+  Video as VideoIcon, VideoOff, Volume2, VolumeOff,
   LogOut, Sun, Bell, BellOff,
 } from "lucide-react";
 import { R, C, T, glass, tipStyle } from "./constants";
@@ -322,20 +321,12 @@ export function ControlBar({
 
   return (
     <Surface className="flex items-center gap-1 px-2 py-1.5">
-      <CtrlBtn on={isMicOn} onClick={() => setIsMicOn(!isMicOn)}
-        iconOn={<Mic size={17} />} iconOff={<MicOff size={17} />}
-        disabled tip="AI Moderator controls the microphone" />
       <CtrlBtn on={isVideoOn} onClick={() => setIsVideoOn(!isVideoOn)}
         iconOn={<VideoIcon size={17} />} iconOff={<VideoOff size={17} />}
         tip={isVideoOn ? "Turn camera preview off" : "Turn camera preview on"} />
       <div className={divCls} />
-      <CtrlBtn on={!isScreenSharing} onClick={() => setIsScreenSharing(!isScreenSharing)}
-        iconOn={<Share size={17} />} iconOff={<Share size={17} />}
-        disabled tip="Screen share is managed by AI Moderator" />
-
       <VolumeControl isSpeakerOn={isSpeakerOn} onToggle={() => setIsSpeakerOn(!isSpeakerOn)}
         volume={volume} onVolumeChange={setVolume} />
-      <BrightnessControl />
 
       <div className={divCls} />
 

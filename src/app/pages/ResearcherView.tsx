@@ -8,7 +8,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import type { ReactNode, CSSProperties } from "react";
 import { AnimatePresence, motion } from "motion/react";
 
-import { ScanFace, AlertTriangle, SkipForward } from "lucide-react";
+import { ScanFace, SkipForward } from "lucide-react";
 import defaultIntervieweeImage from "figma:asset/fa0d16c39081a2c44765b4fd4bdd1d40747ed8e5.png";
 import imgCookiyAI from "figma:asset/e38038c542ec13feb27b209f2d8ba9f865436b98.png";
 
@@ -49,11 +49,68 @@ import { StatusBar } from "../components/StatusBar";
 import { LeftDockModule } from "../components/LeftDockModule";
 import { LeftDockPiP } from "../components/LeftDockPiP";
 import { RightNav } from "../components/RightNav";
-import { DiscardModal } from "../components/DiscardModal";
 
 /* pre-destructure for sandbox compatibility */
 const MotionDiv = motion.div;
-const DEMO_OPEN_PANELS = ["Check List", "Insights"];
+const DEMO_OPEN_PANELS: string[] = [];
+
+function FocusSignalSummary() {
+  return (
+    <MotionDiv
+      initial={{ opacity: 0, x: 10, scale: 0.98 }}
+      animate={{ opacity: 1, x: 0, scale: 1 }}
+      exit={{ opacity: 0, x: 8, scale: 0.98 }}
+      transition={{ duration: 0.22, ease: [0.32, 0.72, 0, 1] }}
+      className="pointer-events-none"
+      style={{
+        width: 284,
+        borderRadius: 20,
+        background: "rgba(7,12,22,0.58)",
+        border: "1px solid rgba(255,255,255,0.095)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08), 0 18px 50px rgba(0,0,0,0.30)",
+        backdropFilter: "blur(30px) saturate(116%)",
+        WebkitBackdropFilter: "blur(30px) saturate(116%)",
+        padding: "14px 15px",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 13 }}>
+        <div>
+          <div style={{ fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.32)" }}>
+            Live signals
+          </div>
+          <div style={{ marginTop: 3, fontSize: 13, color: "rgba(255,255,255,0.82)" }}>
+            Strong reaction detected
+          </div>
+        </div>
+        <div style={{
+          width: 34, height: 34, borderRadius: 17,
+          background: "rgba(109,212,160,0.12)",
+          border: "1px solid rgba(109,212,160,0.20)",
+          color: C.positive,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 16, fontFamily: "monospace",
+        }}>
+          71
+        </div>
+      </div>
+      <div style={{ display: "grid", gap: 8 }}>
+        {[
+          ["Sentiment", "Positive 65%", C.positive],
+          ["Keyword", "Workflow + Integration", "rgba(125,154,255,0.82)"],
+          ["Risk", "Manual handoff friction", C.warning],
+        ].map(([label, value, color]) => (
+          <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 7, minWidth: 0 }}>
+              <span style={{ width: 5, height: 5, borderRadius: 99, background: color }} />
+              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.34)" }}>{label}</span>
+            </div>
+            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.62)", whiteSpace: "nowrap" }}>{value}</span>
+          </div>
+        ))}
+      </div>
+    </MotionDiv>
+  );
+}
 
 /* ═════════════════════════════════════════════════
    ResearcherView — Root Orchestrator (route: /)
@@ -182,6 +239,10 @@ function ResearcherViewInner() {
   ]);
   const followUpIdRef = useRef(100);
   const pending = useMemo(() => followUps.filter(q => q.status === "pending"), [followUps]);
+  const currentFollowUp = useMemo(() => {
+    const urgent = pending.find(q => q.urgent);
+    return urgent ?? pending[0] ?? followUps.find(q => q.status === "asked") ?? null;
+  }, [followUps, pending]);
 
   const handleSendFollowUp = useCallback((text: string, urgent: boolean) => {
     const now = new Date();
@@ -242,7 +303,14 @@ function ResearcherViewInner() {
   const togglePanel = useCallback((id: string) => {
     setOpenPanels(prev => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
+      if (RIGHT_IDS.includes(id as any)) {
+        if (next.has(id)) {
+          next.delete(id);
+        } else {
+          RIGHT_IDS.forEach(rightId => next.delete(rightId));
+          next.add(id);
+        }
+      } else if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
     setDetached(prev => { if (prev[id]) { const n = { ...prev }; delete n[id]; return n; } return prev; });
@@ -412,7 +480,7 @@ function ResearcherViewInner() {
         }}
       >
         <ActionToastStack
-          events={actionEvents} onDismiss={dismissAction}
+          events={allRightOpen.length > 0 ? actionEvents : []} onDismiss={dismissAction}
           panelRectsRef={panelRectsRef} onSnapLines={setSnapLines}
           notificationsOn={notificationsOn}
           onToggleNotifications={() => setNotificationsOn(prev => !prev)}
@@ -450,7 +518,7 @@ function ResearcherViewInner() {
         style={{ top: G, left: G, width: LEFT_W, bottom: G + CTRL_BAR_H + G, gap: G }}
       >
         <div style={{ flexShrink: 0 }}>
-          <StatusBar clock={clock} participantId={launchContext.participantId} />
+          <StatusBar clock={clock} participantId={launchContext.participantId} currentQuestion={currentFollowUp?.text} />
         </div>
 
         <div style={{ flex: "1 1 0", minHeight: 0, display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
@@ -468,6 +536,7 @@ function ResearcherViewInner() {
               onToggle={() => togglePanel("Transcript")}
               translateLang={translateLang}
               onTranslateLangChange={setTranslateLang}
+              participantId={launchContext.participantId}
               liveData={liveEngine}
             />
           </MotionDiv>
@@ -509,6 +578,17 @@ function ResearcherViewInner() {
           onToggleTaskView={handleToggleTaskView}
         />
       </div>
+
+      <AnimatePresence>
+        {allRightOpen.length === 0 && !taskViewOpen && (
+          <div
+            className="absolute z-20"
+            style={{ right: rightOffset, bottom: G + CTRL_BAR_H + G + 4 }}
+          >
+            <FocusSignalSummary />
+          </div>
+        )}
+      </AnimatePresence>
 
       <SnapGuides lines={snapLines} />
 
@@ -581,36 +661,6 @@ function ResearcherViewInner() {
           onToggleNotifications={() => setNotificationsOn(prev => !prev)}
         />
       </div>
-
-      <div
-        className="absolute z-25 flex items-end justify-end"
-        style={{ bottom: G, right: centreRight, transition: "right 0.32s cubic-bezier(0.32,0.72,0,1)", pointerEvents: "none" }}
-      >
-        <div style={{ pointerEvents: "auto" }}>
-          <Tip text="Quality Termination" align="right">
-            <button
-              onClick={() => { setDiscardOpen(true); setDiscardReason(null); setDiscarded(false); }}
-              className="flex items-center gap-2 px-3 py-2 cursor-pointer"
-              style={{
-                ...surfaceStyle,
-                background: discarded ? "rgba(255,128,128,0.08)" : "rgba(255,255,255,0.02)",
-                borderRadius: R.md,
-                color: discarded ? C.negative : "rgba(255,255,255,0.22)",
-                borderWidth: 1, borderStyle: "solid",
-                borderColor: discarded ? "rgba(255,128,128,0.14)" : "rgba(255,255,255,0.08)",
-              }}>
-              <AlertTriangle size={13} />
-              <span style={{ fontSize: T.micro }}>Discard</span>
-            </button>
-          </Tip>
-        </div>
-      </div>
-
-      <DiscardModal
-        open={discardOpen} onClose={() => setDiscardOpen(false)}
-        reason={discardReason} onReasonChange={setDiscardReason}
-        onConfirm={handleDiscard} discarded={discarded}
-      />
 
       <style dangerouslySetInnerHTML={{ __html: `
         .scroll-area::-webkit-scrollbar{width:3px}

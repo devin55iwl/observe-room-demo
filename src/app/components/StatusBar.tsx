@@ -14,20 +14,21 @@ import { useObserveTheme } from "./observe-room/ObserveThemeContext";
 interface StatusBarProps {
   clock: string;
   participantId?: string;
+  currentQuestion?: string;
 }
 
-export function StatusBar({ clock, participantId = "#9527" }: StatusBarProps) {
-  const projectName = "AI AI AI aaananan Tools Research";
+export function StatusBar({ clock, participantId = "#9527", currentQuestion }: StatusBarProps) {
+  const projectName = "SaaS onboarding research";
   const [showTooltip, setShowTooltip] = useState(false);
   const { mode } = useObserveTheme();
   const isLight = mode === "light";
 
   return (
-    <Surface className="px-4 py-2.5 flex items-center gap-0">
+    <Surface className="px-4 py-2.5 flex items-center gap-0" style={{ background: "rgba(7,12,22,0.62)", borderRadius: 20 }}>
       <div className="flex items-center gap-2.5 flex-1 min-w-0">
         <div className="min-w-0">
           <div className={`${isLight ? "text-black/80" : "text-white/90"} truncate`} style={{ fontSize: 15 }}>Observe Room {participantId}</div>
-          <div className="flex items-center gap-1.5" style={{ marginTop: 1 }}>
+          <div className="flex items-center gap-1.5" style={{ marginTop: 2 }}>
             <span
               className={`${isLight ? "text-black/40" : "text-white/40"} truncate relative cursor-default`}
               style={{ fontSize: T.micro, maxWidth: 200 }}
@@ -69,6 +70,13 @@ export function StatusBar({ clock, participantId = "#9527" }: StatusBarProps) {
               Research Ops
             </span>
           </div>
+          {currentQuestion && (
+            <div className="truncate" style={{ marginTop: 8, maxWidth: 292, fontSize: 11, lineHeight: 1.35, color: "rgba(255,255,255,0.58)" }}>
+              <span style={{ color: "rgba(109,212,160,0.78)" }}>AI asking</span>
+              <span style={{ color: "rgba(255,255,255,0.22)" }}> / </span>
+              {currentQuestion}
+            </div>
+          )}
         </div>
       </div>
       <div className="flex items-center gap-2 shrink-0 pl-3 ml-3"

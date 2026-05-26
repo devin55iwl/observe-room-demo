@@ -56,17 +56,17 @@ export function BackgroundLayer({ imgInterviewee, imgCookiyAI, pipSwapped, bgImg
         {/* Hidden reference image for luminance sampling */}
         <img ref={bgImgRef} src={pipSwapped ? imgCookiyAI : imgInterviewee} alt=""
           className="absolute inset-0 w-full h-full object-cover" crossOrigin="anonymous"
-          style={{ ...fullBleedImage, filter: "brightness(0.88) contrast(1.04)", opacity: 0, pointerEvents: "none" }} />
+          style={{ ...fullBleedImage, filter: "brightness(0.58) contrast(1.03) saturate(0.86)", opacity: 0, pointerEvents: "none" }} />
         {/* Interviewee feed */}
         <img src={imgInterviewee} alt="" className="absolute inset-0 w-full h-full object-cover"
-          style={{ ...fullBleedImage, filter: "brightness(0.88) contrast(1.04)", opacity: pipSwapped ? 0 : 1, transitionProperty: "opacity", transitionDuration: "0.6s", transitionTimingFunction: "ease" }} />
+          style={{ ...fullBleedImage, filter: "brightness(0.58) contrast(1.03) saturate(0.86)", opacity: pipSwapped ? 0 : 1, transitionProperty: "opacity", transitionDuration: "0.6s", transitionTimingFunction: "ease" }} />
         {/* AI Moderator feed */}
         <img src={imgCookiyAI} alt="" className="absolute inset-0 w-full h-full object-cover"
-          style={{ ...fullBleedImage, filter: "brightness(0.88) contrast(1.04)", opacity: pipSwapped ? 1 : 0, transitionProperty: "opacity", transitionDuration: "0.6s", transitionTimingFunction: "ease" }} />
+          style={{ ...fullBleedImage, filter: "brightness(0.58) contrast(1.03) saturate(0.86)", opacity: pipSwapped ? 1 : 0, transitionProperty: "opacity", transitionDuration: "0.6s", transitionTimingFunction: "ease" }} />
         {/* Radial vignette */}
-        <div className="absolute inset-0" style={{ ...fullBleed, background: "radial-gradient(ellipse 80% 70% at 42% 42%, transparent 25%, rgba(10,12,18,0.55) 100%)" }} />
+        <div className="absolute inset-0" style={{ ...fullBleed, background: "radial-gradient(ellipse 78% 70% at 42% 40%, rgba(7,12,22,0.12) 0%, rgba(7,12,22,0.42) 58%, rgba(3,7,14,0.82) 100%)" }} />
         {/* Vertical gradient */}
-        <div className="absolute inset-0" style={{ ...fullBleed, background: "linear-gradient(180deg, rgba(10,11,15,0.25) 0%, transparent 30%, transparent 50%, rgba(10,11,15,0.60) 100%)" }} />
+        <div className="absolute inset-0" style={{ ...fullBleed, background: "linear-gradient(180deg, rgba(3,7,14,0.42) 0%, rgba(3,7,14,0.10) 34%, rgba(3,7,14,0.30) 58%, rgba(3,7,14,0.82) 100%)" }} />
       </div>
 
       {/* Edge gradients — also hidden when task view is active */}

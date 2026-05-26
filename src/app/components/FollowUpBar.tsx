@@ -251,302 +251,52 @@ interface FollowUpBarProps {
 }
 
 export function FollowUpBar({ followUps, onDismiss }: FollowUpBarProps) {
-  const [expanded, setExpanded] = useState(false);
-  const { surface } = useAdaptiveGlass();
-  let themeData: any = null;
-  try { themeData = useObserveTheme(); } catch {}
-  const isLight = themeData?.mode === "light";
-  const ot = themeData?.tokens;
-
-  /* Light mode surface override */
-  const surfaceOverride = isLight && ot ? {
-    ...ot.surfaceBlur,
-    borderRadius: 24,
-    background: ot.surfaceBg,
-    borderWidth: 1, borderStyle: "solid" as const, borderColor: ot.surfaceBorder,
-    boxShadow: ot.surfaceShadow,
-  } : surface;
-
-  /* ── Container-width breakpoint tracking ── */
-  const headerRef = useRef<HTMLDivElement>(null);
-  const [headerW, setHeaderW] = useState(9999);
-  useEffect(() => {
-    const el = headerRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(([entry]) => setHeaderW(entry.contentRect.width));
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
-  /*
-   * Breakpoints (measured on the header row itself):
-   *   compact  < 480px : hide progress track + "asked" label
-   *   narrow   < 360px : hide divider + preview area + progress entirely
-   *   mini     < 260px : hide "Follow-ups" text, keep icon + badge + chevron
-   */
-  const compact = headerW < 480;
-  const narrow  = headerW < 360;
-  const mini    = headerW < 260;
-
   const total = followUps.length;
   const asked = followUps.filter(q => q.status === "asked").length;
   const pending = followUps.filter(q => q.status === "pending");
-  const progress = total > 0 ? (asked / total) * 100 : 0;
-  /* nextPending: urgent first */
   const sortedPending = [...pending.filter(q => q.urgent), ...pending.filter(q => !q.urgent)];
   const nextPending = sortedPending[0] ?? null;
+  const current = nextPending ?? followUps.find(q => q.status === "asked");
 
   if (total === 0) return null;
 
   return (
     <MotionDiv
-      initial={{ opacity: 0, y: -16, scale: 0.97 }}
+      initial={{ opacity: 0, y: -10, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -16, scale: 0.97 }}
-      transition={{ type: "spring", damping: 26, stiffness: 220 }}
-      className="relative flex flex-col"
-      style={surfaceOverride}
+      exit={{ opacity: 0, y: -8, scale: 0.98 }}
+      transition={{ type: "spring", damping: 28, stiffness: 260 }}
+      className="relative"
+      style={{
+        width: 430,
+        maxWidth: "42vw",
+        borderRadius: 18,
+        background: "rgba(7,12,22,0.58)",
+        border: "1px solid rgba(255,255,255,0.09)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08), 0 14px 42px rgba(0,0,0,0.26)",
+        backdropFilter: "blur(30px) saturate(116%)",
+        WebkitBackdropFilter: "blur(30px) saturate(116%)",
+      }}
     >
-      {/* ── Header row ── */}
-      <div
-        ref={headerRef}
-        className="relative flex items-center px-4 shrink-0 w-full min-w-0"
-        style={{ height: 51 }}
-      >
-        {/* Left cluster: icon + title + S1-2 AI queue badge */}
-        <div className="flex items-center gap-2 shrink-0">
-          <MessageSquareText size={14} strokeWidth={1.4} className={isLight ? "text-black/28 shrink-0" : "text-white/28 shrink-0"} />
-
-          {/* "Follow-ups" label — hidden at mini */}
-          {!mini && (
-            <span
-              className={isLight ? "text-black/80 whitespace-nowrap" : "text-white/80 whitespace-nowrap"}
-              style={{ fontSize: T.title, letterSpacing: -0.46 }}
-            >
-              Follow-ups
-            </span>
-          )}
-
-          {/* S1-2: AI queue badge */}
-          {!mini && (
-            <div style={{
-              display: "flex", alignItems: "center", gap: 4,
-              padding: "2px 7px",
-              borderRadius: 10,
-              background: isLight ? "rgba(0,0,0,0.04)" : "rgba(97,95,255,0.08)",
-              borderWidth: 0.5, borderStyle: "solid",
-              borderColor: isLight ? "rgba(0,0,0,0.08)" : "rgba(97,95,255,0.18)",
-              flexShrink: 0,
-            }}>
-              <Sparkles size={8} style={{ color: isLight ? "rgba(0,0,0,0.45)" : "rgba(97,95,255,0.70)" }} />
-              <span style={{
-                fontSize: 8,
-                color: isLight ? "rgba(0,0,0,0.40)" : "rgba(97,95,255,0.60)",
-                letterSpacing: "0.02em",
-                whiteSpace: "nowrap",
-              }}>
-                → AI Moderator
-              </span>
-            </div>
-          )}
-
-          {/* Pending count badge — visible when collapsed & there are pending items */}
-          <AnimatePresence>
-            {!expanded && pending.length > 0 && (
-              <MotionDiv
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0, opacity: 0 }}
-                transition={{ type: "spring", damping: 22, stiffness: 340 }}
-                className="flex items-center justify-center shrink-0"
-                style={{
-                  minWidth: 18,
-                  height: 18,
-                  borderRadius: 9999,
-                  background: C.warning,
-                  boxShadow: `0 0 8px rgba(255,209,102,0.35), 0 1px 3px rgba(0,0,0,0.30)`,
-                  fontSize: 10,
-                  color: "rgba(0,0,0,0.75)",
-                  padding: "0 5px",
-                  lineHeight: 1,
-                }}
-              >
-                {pending.length}
-              </MotionDiv>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* Divider — hidden at narrow */}
-        {!narrow && (
-          <div
-            className="shrink-0 mx-3.5"
-            style={{ width: 0.5, height: 18, background: isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)", borderRadius: 1 }}
-          />
-        )}
-
-        {/* ── Inline next-pending preview — hidden at narrow ── */}
-        {!narrow && (
-          <div className="flex-1 min-w-0 overflow-hidden">
-            <AnimatePresence mode="wait">
-              {nextPending ? (
-                <MotionDiv
-                  key={nextPending.id}
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  transition={{ type: "spring", damping: 24, stiffness: 300 }}
-                  className="flex items-center gap-2.5"
-                >
-                  {/* Pulsing dot */}
-                  <div className="relative shrink-0">
-                    <div
-                      className="size-[5px] rounded-full animate-pulse"
-                      style={{ background: STATUS_COLOR.pending, boxShadow: `0 0 6px 2px ${STATUS_GLOW.pending}` }}
-                    />
-                  </div>
-
-                  {/* Question text */}
-                  <span
-                    className={`truncate min-w-0 ${isLight ? "text-black/55" : "text-white/55"}`}
-                    style={{ fontSize: 11, lineHeight: 1.35, letterSpacing: 0.06 }}
-                  >
-                    {nextPending.text}
-                  </span>
-
-                  {/* Urgent badge */}
-                  {nextPending.urgent && (
-                    <span
-                      className="shrink-0 uppercase px-1 py-px"
-                      style={{
-                        fontSize: 7,
-                        letterSpacing: 0.79,
-                        color: C.negative,
-                        background: "rgba(255,128,128,0.06)",
-                        borderRadius: 3,
-                        border: "0.5px solid rgba(255,128,128,0.10)",
-                      }}
-                    >
-                      urgent
-                    </span>
-                  )}
-                </MotionDiv>
-              ) : (
-                <MotionSpan
-                  key="__empty__"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.25 }}
-                  className="text-white/16 italic"
-                  style={{ fontSize: T.caption }}
-                >
-                  All questions asked
-                </MotionSpan>
-              )}
-            </AnimatePresence>
+      <div className="flex items-center gap-3 px-3.5 py-3 min-w-0">
+        <div style={{ width: 7, height: 7, borderRadius: 99, background: current?.urgent ? C.negative : C.warning, boxShadow: `0 0 10px ${current?.urgent ? "rgba(255,128,128,0.35)" : "rgba(255,209,102,0.28)"}` }} />
+        <div className="min-w-0 flex-1">
+          <div style={{ fontSize: 9, letterSpacing: "0.13em", textTransform: "uppercase", color: "rgba(255,255,255,0.30)" }}>
+            Current follow-up
           </div>
-        )}
-
-        {/* Flex spacer when preview is hidden so right cluster stays right */}
-        {narrow && <div style={{ flex: 1 }} />}
-
-        {/* Right cluster: progress + counter + chevron */}
-        <div className="flex items-center gap-3.5 shrink-0 ml-2">
-          {/* Progress track — hidden at compact */}
-          {!compact && (
-            <div className="flex items-center gap-4">
-              <div
-                className="relative overflow-hidden"
-                style={{
-                  width: 81, height: 4,
-                  borderRadius: 9999,
-                  background: "rgba(255,255,255,0.06)",
-                  boxShadow: "inset 0 0.5px 1px rgba(0,0,0,0.15)",
-                }}
-              >
-                <MotionDiv
-                  animate={{ width: `${progress}%` }}
-                  transition={{ type: "spring", damping: 20, stiffness: 180 }}
-                  className="absolute inset-y-0 left-0"
-                  style={{
-                    borderRadius: 9999,
-                    background: `linear-gradient(90deg, ${C.positive}, rgba(109,212,160,0.7))`,
-                    boxShadow: `0 0 8px ${STATUS_GLOW.asked}`,
-                  }}
-                />
-              </div>
-
-              {/* Counter — highlight asked count */}
-              <span
-                className="font-mono tabular-nums whitespace-nowrap"
-                style={{ fontSize: T.caption }}
-              >
-                <span style={{ color: "rgba(255,255,255,0.65)" }}>{asked}</span>
-                <span style={{ color: "rgba(255,255,255,0.20)" }}>/{total}</span>
-                <span style={{ color: "rgba(255,255,255,0.30)", marginLeft: 3 }}>asked</span>
-              </span>
-            </div>
-          )}
-
-          {/* Compact counter — numbers only, no progress bar, no "asked" label */}
-          {compact && !mini && (
-            <span className="font-mono tabular-nums whitespace-nowrap" style={{ fontSize: T.caption }}>
-              <span style={{ color: "rgba(255,255,255,0.65)" }}>{asked}</span>
-              <span style={{ color: "rgba(255,255,255,0.20)" }}>/{total}</span>
-            </span>
-          )}
-
-          {/* Collapse / expand chevron — always visible */}
-          <button
-            onClick={() => setExpanded(v => !v)}
-            className="group/chev flex items-center justify-center cursor-pointer transition-colors shrink-0"
-            style={{ borderRadius: 8, width: 24, height: 24, background: "rgba(255,255,255,0.00)" }}
-            onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; }}
-            onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.00)"; }}
-          >
-            <MotionDiv
-              animate={{ rotate: expanded ? 0 : 180 }}
-              transition={{ type: "spring", damping: 22, stiffness: 300 }}
-            >
-              <ChevronUp size={13} className="text-white/25 group-hover/chev:text-white/50 transition-colors" />
-            </MotionDiv>
-          </button>
+          <div className="truncate" style={{ marginTop: 2, fontSize: 12, color: "rgba(255,255,255,0.70)", lineHeight: 1.35 }}>
+            {current?.text ?? "All follow-ups asked"}
+          </div>
         </div>
-      </div>
-
-      {/* ── Expandable content area ── */}
-      <AnimatePresence initial={false}>
-        {expanded && (
-          <MotionDiv
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ type: "spring", damping: 28, stiffness: 280 }}
-            className="overflow-hidden"
-          >
-            {/* Separator line */}
-            <div
-              className="mx-0"
-              style={{ height: 0.5, background: "rgba(255,255,255,0.06)" }}
-            />
-            <div className="px-4 pt-3 pb-3">
-              <div className="flex flex-col gap-1.5">
-                <AnimatePresence>
-                  {/* Sorted: urgent pending → normal pending → asked/failed */}
-                  {[
-                    ...pending.filter(q => q.urgent),
-                    ...pending.filter(q => !q.urgent),
-                    ...followUps.filter(q => q.status !== "pending"),
-                  ].map((fq, i) => (
-                    <NoteSlip key={fq.id} fq={fq} index={i} onDismiss={onDismiss} />
-                  ))}
-                </AnimatePresence>
-              </div>
-            </div>
-          </MotionDiv>
+        {current?.urgent && (
+          <span style={{ fontSize: 8, letterSpacing: "0.08em", textTransform: "uppercase", color: C.negative, background: "rgba(255,128,128,0.08)", border: "1px solid rgba(255,128,128,0.16)", borderRadius: 5, padding: "2px 6px" }}>
+            urgent
+          </span>
         )}
-      </AnimatePresence>
+        <span className="font-mono tabular-nums" style={{ fontSize: 11, color: "rgba(255,255,255,0.36)" }}>
+          {asked}/{total}
+        </span>
+      </div>
     </MotionDiv>
   );
 }

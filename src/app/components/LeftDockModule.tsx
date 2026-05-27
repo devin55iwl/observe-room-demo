@@ -24,6 +24,12 @@ import { useObserveTheme } from "./observe-room/ObserveThemeContext";
 /* ── pre-destructure for Figma sandbox ── */
 const MotionDiv = motion.div;
 
+type CaptionStackItem = {
+  key: string;
+  text: string;
+  speaker: "mod" | "int";
+};
+
 /* ── Unified Toggle Strip ───────────────────────────────────────
    Single affordance for both expand & collapse.
    Lives at the bottom of the outer container in all states.
@@ -183,7 +189,9 @@ export function LeftDockModule({
   liveData,
 }: LeftDockModuleProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const captionStackRef = useRef<HTMLDivElement>(null);
   const [liveBarHovered, setLiveBarHovered] = useState(false);
+  const [captionStack, setCaptionStack] = useState<CaptionStackItem[]>([]);
   const { mode, tokens: ot } = useObserveTheme();
   const isLight = mode === "light";
   const isCaption = variant === "caption";
@@ -214,6 +222,80 @@ export function LeftDockModule({
     ? (translateLang ? getTranslation(translateLang, lastTurn.text) : lastTurn.text)
     : null;
   const lastSpeaker = lastTurn ? lastTurn.speaker : null;
+
+  useEffect(() => {
+    if (!isCaption || isExpanded) return;
+
+    const nextItem: CaptionStackItem = lastText
+      ? {
+          key: `${lastTurn?.id ?? "speech"}-${translateLang || "source"}-${lastText}`,
+          text: lastText,
+          speaker: lastSpeaker ?? speaker,
+        }
+      : {
+          key: "waiting-for-speech",
+          text: "Waiting for speech…",
+          speaker,
+        };
+
+    setCaptionStack((items) => {
+      if (items[items.length - 1]?.key === nextItem.key) return items;
+      return [...items.slice(-1), nextItem];
+    });
+  }, [isCaption, isExpanded, lastText, lastSpeaker, lastTurn?.id, speaker, translateLang]);
+
+  useEffect(() => {
+    if (!isCaption || !captionStackRef.current || captionStack.length === 0) return;
+
+    let cancelled = false;
+    let ctx: { revert: () => void } | null = null;
+
+    import("gsap").then(({ default: gsap }) => {
+      if (cancelled) return;
+
+      ctx = gsap.context(() => {
+        const root = captionStackRef.current;
+        if (!root) return;
+
+        const lines = Array.from(root.querySelectorAll<HTMLElement>("[data-caption-line]"));
+        const current = root.querySelector<HTMLElement>("[data-caption-current='true']");
+        const stale = lines.filter((line) => line !== current);
+
+        gsap.killTweensOf(lines);
+        if (current) {
+          gsap.fromTo(
+            current,
+            { autoAlpha: 0, y: 7, filter: "blur(3px)" },
+            { autoAlpha: 1, y: 0, filter: "blur(0px)", duration: 0.42, ease: "power2.out", overwrite: true }
+          );
+        }
+
+        stale.forEach((line) => {
+          gsap.to(line, {
+            autoAlpha: 0,
+            y: -9,
+            filter: "blur(2px)",
+            delay: 0.35,
+            duration: 0.42,
+            ease: "power2.inOut",
+            overwrite: true,
+            onComplete: () => {
+              if (cancelled) return;
+              const key = line.dataset.captionKey;
+              if (key) {
+                setCaptionStack((items) => items.filter((item) => item.key !== key));
+              }
+            },
+          });
+        });
+      }, captionStackRef);
+    });
+
+    return () => {
+      cancelled = true;
+      ctx?.revert();
+    };
+  }, [captionStack, isCaption]);
 
   /* Light-mode accent colors */
   const accentColor = isLight ? "rgba(0,0,0,0.70)" : C.accent;
@@ -528,27 +610,76 @@ export function LeftDockModule({
 
         ) : (
           /* Collapsed single-speaker: show last completed turn */
-          <div>
-            {lastText ? (
-              <p style={{
-                fontSize: T.caption, lineHeight: 1.62, margin: 0,
-                color: lastSpeaker === "mod" ? ot.ink3 : ot.ink2,
-                fontStyle: lastSpeaker === "mod" ? "italic" : "normal",
+          isCaption ? (
+            <div
+              ref={captionStackRef}
+              aria-live="polite"
+              style={{
+                position: "relative",
+                minHeight: 46,
                 overflow: "hidden",
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical" as const,
-              }}>
-                <span style={{ color: ot.ink4 }}>&ldquo;</span>
-                {lastText}
-                <span style={{ color: ot.ink4 }}>&rdquo;</span>
-              </p>
-            ) : (
-              <p style={{ fontSize: T.caption, lineHeight: 1.62, margin: 0, color: ot.ink4, fontStyle: "italic" }}>
-                Waiting for speech…
-              </p>
-            )}
-          </div>
+              }}
+            >
+              {captionStack.map((item, index) => {
+                const isCurrent = index === captionStack.length - 1;
+                const isModerator = item.speaker === "mod";
+                return (
+                  <p
+                    key={item.key}
+                    data-caption-line
+                    data-caption-key={item.key}
+                    data-caption-current={isCurrent ? "true" : "false"}
+                    style={{
+                      fontSize: T.caption,
+                      lineHeight: 1.48,
+                      margin: 0,
+                      color: isCurrent
+                        ? (isModerator ? ot.ink3 : ot.ink2)
+                        : (isLight ? "rgba(0,0,0,0.34)" : "rgba(255,255,255,0.34)"),
+                      fontStyle: isModerator ? "italic" : "normal",
+                      overflow: "hidden",
+                      display: "-webkit-box",
+                      WebkitLineClamp: isCurrent ? 2 : 1,
+                      WebkitBoxOrient: "vertical" as const,
+                      willChange: "transform, opacity, filter",
+                      position: "absolute",
+                      top: isCurrent ? "auto" : 0,
+                      bottom: isCurrent ? 0 : "auto",
+                      left: 0,
+                      right: 0,
+                      transform: isCurrent ? "translateY(0)" : "translateY(-2px)",
+                    }}
+                  >
+                    <span style={{ color: ot.ink4 }}>&ldquo;</span>
+                    {item.text}
+                    <span style={{ color: ot.ink4 }}>&rdquo;</span>
+                  </p>
+                );
+              })}
+            </div>
+          ) : (
+            <div>
+              {lastText ? (
+                <p style={{
+                  fontSize: T.caption, lineHeight: 1.62, margin: 0,
+                  color: lastSpeaker === "mod" ? ot.ink3 : ot.ink2,
+                  fontStyle: lastSpeaker === "mod" ? "italic" : "normal",
+                  overflow: "hidden",
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical" as const,
+                }}>
+                  <span style={{ color: ot.ink4 }}>&ldquo;</span>
+                  {lastText}
+                  <span style={{ color: ot.ink4 }}>&rdquo;</span>
+                </p>
+              ) : (
+                <p style={{ fontSize: T.caption, lineHeight: 1.62, margin: 0, color: ot.ink4, fontStyle: "italic" }}>
+                  Waiting for speech…
+                </p>
+              )}
+            </div>
+          )
         )}
       </div>
 
